@@ -1,35 +1,46 @@
 name: Terraform with Docker
 
-on: push
+on: 
+  push:
+    branches:
+      - main   # You can adjust this to the branch you want to trigger on
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step 2: Set up Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
+      # Step 3: Install Docker
       - name: Install Docker
         run: |
-          sudo apt update
-          sudo apt install -y docker.io
+          sudo apt-get update
+          sudo apt-get install -y docker.io
           sudo systemctl start docker
+          sudo systemctl enable docker
           sudo usermod -aG docker $USER
 
+      # Step 4: Initialize Terraform
       - name: Initialize Terraform
         run: terraform init
 
+      # Step 5: Apply Terraform configuration
       - name: Apply Terraform
         run: terraform apply -auto-approve
 
-      - name: Verify Running Container
+      # Step 6: Verify Docker container is running
+      - name: Verify Running Docker Container
         run: docker ps
 
+      # Step 7: Destroy Terraform resources after test
       - name: Destroy Terraform Resources
         run: terraform destroy -auto-approve
