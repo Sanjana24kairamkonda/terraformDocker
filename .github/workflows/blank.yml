@@ -1,9 +1,9 @@
 name: Terraform with Docker
 
-on: 
+on:
   push:
     branches:
-      - main   # You can adjust this to the branch you want to trigger on
+      - main  # Trigger the workflow when there is a push to the 'main' branch
 
 jobs:
   terraform:
@@ -24,9 +24,15 @@ jobs:
       - name: Install Docker
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get remove -y docker docker-engine docker.io containerd runc
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
           sudo systemctl start docker
           sudo systemctl enable docker
+          sudo usermod -aG docker $USER
 
       # Step 4: Initialize Terraform
       - name: Initialize Terraform
@@ -36,10 +42,10 @@ jobs:
       - name: Apply Terraform
         run: terraform apply -auto-approve
 
-      # Step 6: Verify Docker container is running
+      # Step 6: Verify Running Docker Container
       - name: Verify Running Docker Container
         run: docker ps
 
-      # Step 7: Destroy Terraform resources after test
+      # Step 7: Destroy Terraform Resources
       - name: Destroy Terraform Resources
         run: terraform destroy -auto-approve
